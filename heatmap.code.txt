@@ -1,0 +1,35 @@
+setwd("F:\\Doctor\\R语言学习\\自学\\热图2017-1-14")
+#建立数据框
+#构造含有1到6（1：6）或0.1到0.6（(1:6)/10）的矢量数据集
+data <- c(1:6,6:1,6:1,1:6, (6:1)/10,(1:6)/10,(1:6)/10,(6:1)/10,1:6,6:1,6:1,1:6, 6:1,1:6,1:6,6:1)
+#矢量(Vector)转为矩阵 (matrix)，再转为数据框 (data.frame)
+data <- as.data.frame(matrix(data, ncol=12, byrow=T))
+#增加列名
+colnames(data) <- c("Zygote","2_cell","4_cell","8_cell","Morula","ICM","ESC",
+                    "4 week PGC","7 week PGC","10 week PGC","17 week PGC", "OOcyte")
+#按照"Gene_1"的形式增加行名
+rownames(data) <- paste("Gene", 1:8, sep="_")
+# 只显示前6行和前4列（行缺省默认为6）
+head(data)[,1:4]
+library(reshape2)
+library(ggplot2)
+#转换前，先增加一列ID列，保存为行名字
+data$ID <- rownames(data)
+# 把正常矩阵转换为长表格模式的函数。把全部的非id列的数值列转为1列，命名为value；所有字符列转为variable列。
+# id.vars 列用于指定哪些列为id列；这些列不会被merge，会保留为完整一列。
+data_m <- melt(data, id.vars=c("ID"))
+head(data_m)
+#作图
+ggplot(data_m, aes(x=variable,y=ID)) + 
+     geom_tile(aes(fill=value)) + 
+#调整x轴标签45度，右对齐，顶对齐;图例去标签位置正中居上,无背景网格线
+#hjust是水平的对齐方式，0为左，1为右，0.5居中，0-1之间可以取任意值。vjust是垂直对齐方式，0底对齐，1为顶对齐，0.5居中，0-1之间可以取任意值。
+     theme(axis.text.x=element_text(angle=45,hjust=1, vjust=1),
+     legend.position="top", legend.key=element_blank(),
+     panel.grid.major = element_blank())+ 
+#设置标尺填充色渐变为白色到红色
+     scale_fill_gradient(low = "white", high = "red")+
+     xlab("samples") + theme_bw()
+#图片输出
+ggsave(p, filename="heatmap.pdf", width=10,
+       height=15, units=c("cm"),colormodel="srgb")
